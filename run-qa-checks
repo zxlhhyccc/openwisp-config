@@ -1,0 +1,37 @@
+#!/bin/bash
+set -e
+
+# will be 1 by default when run through github actions
+CI=${CI:-0}
+
+if [ "$CI" -eq 1 ]; then
+	# during github actions CI, copy these files so that they can be checked by
+	# the github action step "action-sh-checker" (see .github/workflows/ci.yml)
+	cp openwisp-config/files/openwisp.agent openwisp_agent
+	cp openwisp-config/files/openwisp.init openwisp_init
+else
+	# check shell scripts formatting
+	sh_files=$(shfmt -f --apply-ignore .)
+	# shellcheck disable=SC2086
+	shellcheck $sh_files \
+		openwisp-config/files/openwisp.agent \
+		openwisp-config/files/openwisp.init
+
+	shfmt -d --apply-ignore .
+	shfmt -d openwisp-config/files/openwisp.agent
+	shfmt -d openwisp-config/files/openwisp.init
+fi
+
+(
+	cd openwisp-config
+	lua-format --check --config=luaformat.config \
+		files/sbin/*.lua \
+		files/lib/openwisp/*.lua \
+		tests/*.lua
+)
+
+openwisp-qa-check \
+	--skip-checkmigrations \
+	--skip-isort \
+	--skip-flake8 \
+	--skip-black

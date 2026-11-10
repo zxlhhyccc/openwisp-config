@@ -14,10 +14,23 @@ config interface 'lan'
 	option ip6assign '60'
 	option force_link '0'
 
+config device
+	option name 'eth0.2'
+	option macaddr '00:00:00:00:00:11'
+
 config interface 'wan'
-	option ifname 'eth0.2'
+	option device 'eth0.2'
 	option proto 'none'
 	option test_restore '1'
+
+config device
+	option name 'br-lan2'
+	list ports 'lan2'
+	option type 'bridge'
+
+config interface 'lan2'
+	option device 'br-lan2'
+	option proto 'dhcp'
 
 config interface 'wlan0'
 	option ifname 'wlan0'
@@ -50,7 +63,7 @@ config switch_port
 	option device 'switch0'
 	option port '1'
 
-config route
+config route 'route1'
   option test '1'
 
 config route
